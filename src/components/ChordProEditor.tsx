@@ -15,6 +15,8 @@ export default function ChordProEditor() {
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const sectionCountsRef = useRef<Record<string, number>>({});
+
   const transformSelection = (transformFn: (s: string) => string) => {
     const textarea = editorRef.current;
     if (!textarea) return;
@@ -84,7 +86,6 @@ export default function ChordProEditor() {
       const escaped = escapeFilenameForBash(file.name);
       insertTextAtCursor(`{image: ${escaped}}\n`);
     }
-    // Reset the input value so selecting the same file again still triggers onChange
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -127,6 +128,30 @@ export default function ChordProEditor() {
     'Abm'
   ];
 
+  const chordRegex =
+    /^[A-G](#|b)?(m|5|7|maj7|sus2|sus4|dim|m7b5)?(\/[A-G](#|b)?(m|5|7|maj7|sus2|sus4|dim|m7b5)?)?$/;
+
+  const convertSquareBrackets = () => {
+    const newContent = content.replace(/\[([^\]]+)\]/g, (match, p1) => {
+      const trimmed = p1.trim();
+      if (chordRegex.test(trimmed)) return match;
+
+      const sectionKey = trimmed.toLowerCase();
+      const currentCount = sectionCountsRef.current[sectionKey] ?? 0;
+      const newCount = currentCount + 1;
+      sectionCountsRef.current[sectionKey] = newCount;
+
+      const titleCaseName = toTitleCase(trimmed);
+      const upperCaseName = trimmed.toUpperCase();
+      const numberedTitleCase = newCount > 1 ? `${titleCaseName} ${newCount}` : titleCaseName;
+      const numberedUpperCase = newCount > 1 ? `${upperCaseName} ${newCount}` : upperCaseName;
+
+      return `{songPartName: ${numberedTitleCase}}\n${numberedUpperCase}:\n`;
+    });
+
+    setContent(newContent);
+  };
+
   return (
     <div className="container">
       <h1>Chord Pro to GigPerformer Text Editor</h1>
@@ -156,7 +181,13 @@ export default function ChordProEditor() {
       <textarea
         ref={editorRef}
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={(e) => {
+          const newContent = e.target.value;
+          setContent(newContent);
+          if (newContent.trim() === '') {
+            sectionCountsRef.current = {};
+          }
+        }}
         placeholder="Enter ChordPro content here..."
       />
 
@@ -190,6 +221,13 @@ export default function ChordProEditor() {
           Transform selection to TitleCase
         </button>
         <button onClick={copyToClipboard}>Copy all to Clipboard</button>
+        <button onClick={convertSquareBrackets}>Convert [Sections] to ChordPro tags</button>
+      </div>
+
+      {/* Live Preview Panel */}
+      <div className="preview">
+        <h2>Preview</h2>
+        <pre>{content}</pre>
       </div>
     </div>
   );
