@@ -66,18 +66,23 @@ Common tags you can quickly insert:
 - Solo
 - End
 
-### Insert Image
+### Insert Image Button
 
 Enter the full path to a PNG or PDF file in the **Image Path** input box, then click **Insert Image**.
 
-⚠️ Due to browser security, the full disk path must be typed manually. Beginning and ending quotes are removed automatically to ensure GigPerformer can load the image.
+⚠️ Due to browser security, the full disk path must be entered manually. Beginning and ending quotes are removed automatically to ensure GigPerformer can load the image.
 
-### Transform Selection
+#### Quick Tip:
+
+- On a Mac, you can select a file, and press [Option]+[Command]+[C] and the full path and filename will be copied to the clipboard.
+- On Windows, in the file Explorer, hold [Shift] and right-click a file, then select "Copy as path", and the full path and file name will be copied to the clipboard.
+
+### Transform Selection Buttons
 
 - Transform selection to **UPPERCASE**
 - Transform selection to **Title Case**
 
-### Clipboard
+### Copy Clipboard Button
 
 Copy the editor contents to the clipboard for easy pasting into GigPerformer's lyrics/chords editor.
 
