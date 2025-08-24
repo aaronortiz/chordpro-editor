@@ -1,12 +1,51 @@
-# React + Vite
+# Chord Pro to GigPerformer Text Editor
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a very basic vibe-coded app created with ChatGPT to help me (Aaron Ortiz) quickly prepare files for GigPerformer's chord and lyrics viewer. Since GigPerformer uses a variation of ChordPro format, some of these actions were pain points and very time consuming for me.
 
-Currently, two official plugins are available:
+# How to install
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Download to a folder of you choosing, and from the terminal run:
 
-## Expanding the ESLint configuration
+```
+npm i
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+If all goes well, you can start the editor by running the command
+
+```
+npm run dev
+```
+
+# How to use:
+
+## Song Meta Tags
+
+You can type in a _*Title*_, _*Artist*_, or select a _*key*_, and use the _*Insert {title} tag*_, _*Insert {artist} tag*_ and _*Insert {key} tag*_ buttons
+
+## Search and replace
+
+A very basic, case-sensitive search and replace, will replace all occurences of the _*Search*_ text you enter with the _*Replace*_ text.
+
+## Quick tag insert buttons
+
+The following buttons insert common tags:
+
+- {comment}
+- Intro
+- Verse 1
+- Verse 2
+- Verse 3
+- Verse 4
+- Chorus
+- Bridge
+- Interlude
+- Solo
+- End
+
+# Insert image
+
+The insert image button will let you select a PNG or PDF file and embed it in the chord pro document.
+
+This is problematic because the browser does not have access to the user's full disk. So, you have to manually put in the full path and image in the text box, and press the _*Insert Image*_ button for it to be inserted.
+
+CAVEAT: remove any single or double quotes from the start and end of the text before pressing the button
