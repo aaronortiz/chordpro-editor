@@ -86,6 +86,10 @@ Enter the full path to a PNG or PDF file in the **Image Path** input box, then c
 
 Copy the editor contents to the clipboard for easy pasting into GigPerformer's lyrics/chords editor.
 
+### My favorite trick: Convert [Sections] to ChordPro tags
+
+This is actually quite nice. Sometimes when you find chords online, they will have their sections with square brackets `[Like this]`. This button searches the text for any instance of text that is not a chord, and replaces it with a `{songPartName: }` tag instead.
+
 ---
 
 ## Acknowledgments
