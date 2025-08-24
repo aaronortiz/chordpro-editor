@@ -1,0 +1,52 @@
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: sans-serif;
+  background-color: #ddd;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.top-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.top-controls input,
+.top-controls select {
+  flex: 1;
+  padding: 6px;
+}
+
+textarea {
+  flex: 1 1 auto;
+  resize: none;
+  margin-bottom: 10px;
+  font-family: monospace;
+  padding: 8px;
+}
+
+.actions,
+.search-replace,
+.quick-buttons {
+  margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  border-width: 0.5px;
+}
