@@ -76,7 +76,7 @@ export default function ChordProEditor() {
 
   const handleImageInsert = () => {
     if (!imagePath.trim()) return;
-    const escapedPath = escapeFilenameForBash(imagePath.trim());
+    const escapedPath = escapeFilenameForBash(imagePath.replace(/^['"]|['"]$/g, '').trim());
     insertTextAtCursor(`{image: ${escapedPath}}\n`);
     setImagePath(''); // optional: clear input after insert
   };
@@ -183,7 +183,7 @@ export default function ChordProEditor() {
           Transform selection to UPPERCASE
         </button>
         <button onClick={() => transformSelection(toTitleCase)}>
-          Transform selection to TitleCase
+          Transform selection to Title Case
         </button>
         <button onClick={copyToClipboard}>Copy all to Clipboard</button>
       </div>
