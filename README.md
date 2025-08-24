@@ -82,7 +82,7 @@ Enter the full path to a PNG or PDF file in the **Image Path** input box, then c
 - Transform selection to **UPPERCASE**
 - Transform selection to **Title Case**
 
-### Copy Clipboard Button
+### Copy all to Clipboard Button
 
 Copy the editor contents to the clipboard for easy pasting into GigPerformer's lyrics/chords editor.
 
