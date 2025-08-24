@@ -196,6 +196,8 @@ export default function ChordProEditor() {
         <button onClick={() => quickInsert('{songPartName: Intro}\nINTRO:')}>Intro</button>
         <button onClick={() => quickInsert('{songPartName: Verse 1}\nVERSE 1:')}>Verse 1</button>
         <button onClick={() => quickInsert('{songPartName: Verse 2}\nVERSE 2:')}>Verse 2</button>
+        <button onClick={() => quickInsert('{songPartName: Verse 2}\nVERSE 3:')}>Verse 3</button>
+        <button onClick={() => quickInsert('{songPartName: Verse 2}\nVERSE 4:')}>Verse 4</button>
         <button onClick={() => quickInsert('{songPartName: Chorus}\nCHORUS:')}>Chorus</button>
         <button onClick={() => quickInsert('{songPartName: Bridge}\nBRIDGE:')}>Bridge</button>
         <button onClick={() => quickInsert('{songPartName: Interlude}\nINTERLUDE:')}>
