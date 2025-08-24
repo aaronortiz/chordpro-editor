@@ -1,42 +1,74 @@
+/* Center the app container and give it spacing */
 #root {
-  max-width: 1280px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: 1rem;
+  font-family: sans-serif;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Top controls layout */
+.top-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1rem;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.top-controls input,
+.top-controls select,
+.top-controls button {
+  padding: 0.5rem;
+  font-size: 1rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Search & replace controls */
+.search-replace {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-.card {
-  padding: 2em;
+.search-replace input {
+  padding: 0.5rem;
+  font-size: 1rem;
 }
 
-.read-the-docs {
-  color: #888;
+/* Text editor */
+textarea {
+  width: 100%;
+  height: 50vh; /* shorter so buttons stay visible */
+  padding: 1rem;
+  font-size: 1rem;
+  font-family: monospace;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+/* Quick insert buttons */
+.quick-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.quick-buttons button {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* Action buttons */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.actions button {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
 }

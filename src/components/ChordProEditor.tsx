@@ -1,15 +1,21 @@
 import React, { useState, useRef } from 'react';
 
-export default function ChordProEditor() {
-  const [title, setTitle] = useState('');
-  const [artist, setArtist] = useState('');
-  const [key, setKey] = useState('');
-  const [content, setContent] = useState('');
-  const [search, setSearch] = useState('');
-  const [replace, setReplace] = useState('');
-  const editorRef = useRef(null);
+// Utility: escape filename like a Bash shell would
+const escapeFilenameForBash = (filename: string): string => {
+  return filename.replace(/(["\s'$`\\])/g, '\\$1');
+};
 
-  const transformSelection = (transformFn) => {
+export default function ChordProEditor() {
+  const [title, setTitle] = useState<string>('');
+  const [artist, setArtist] = useState<string>('');
+  const [key, setKey] = useState<string>('');
+  const [content, setContent] = useState<string>('');
+  const [search, setSearch] = useState<string>('');
+  const [replace, setReplace] = useState<string>('');
+  const editorRef = useRef<HTMLTextAreaElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const transformSelection = (transformFn: (s: string) => string) => {
     const textarea = editorRef.current;
     if (!textarea) return;
     const start = textarea.selectionStart;
@@ -26,15 +32,15 @@ export default function ChordProEditor() {
     }, 0);
   };
 
-  const toTitleCase = (str) =>
-    str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+  const toTitleCase = (str: string): string =>
+    str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
 
   const handleSearchReplace = () => {
     if (!search) return;
     setContent((prev) => prev.split(search).join(replace));
   };
 
-  const quickInsert = (text) => {
+  const quickInsert = (text: string) => {
     const textarea = editorRef.current;
     if (!textarea) return;
     const start = textarea.selectionStart;
@@ -51,6 +57,37 @@ export default function ChordProEditor() {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(content);
+  };
+
+  const insertTextAtCursor = (text: string) => {
+    const textarea = editorRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const before = content.substring(0, start);
+    const after = content.substring(end);
+    const newText = before + text + after;
+    setContent(newText);
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + text.length, start + text.length);
+    }, 0);
+  };
+
+  const handleImageInsert = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const escaped = escapeFilenameForBash(file.name);
+      insertTextAtCursor(`{image: ${escaped}}\n`);
+    }
+    // Reset the input value so selecting the same file again still triggers onChange
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const keyOptions = [
@@ -93,11 +130,12 @@ export default function ChordProEditor() {
   return (
     <div className="container">
       <h1>Chord Pro to GigPerformer Text Editor</h1>
+
       <div className="top-controls">
         <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-        <button onClick={() => quickInsert(`{title: ${title}}`)}>{'Insert {title} tag'}</button>
+        <button onClick={() => quickInsert(`{title: ${title}}`)}>Insert {`{title}`} tag</button>
         <input placeholder="Artist" value={artist} onChange={(e) => setArtist(e.target.value)} />
-        <button onClick={() => quickInsert(`{artist: ${artist}}`)}>{'Insert {artist} tag'}</button>
+        <button onClick={() => quickInsert(`{artist: ${artist}}`)}>Insert {`{artist}`} tag</button>
         <select value={key} onChange={(e) => setKey(e.target.value)}>
           <option value="">Select Key</option>
           {keyOptions.map((k) => (
@@ -106,7 +144,7 @@ export default function ChordProEditor() {
             </option>
           ))}
         </select>
-        <button onClick={() => quickInsert(`{key: ${key}}`)}>{'Insert {key} tag'}</button>
+        <button onClick={() => quickInsert(`{key: ${key}}`)}>Insert {`{key}`} tag</button>
       </div>
 
       <div className="search-replace">
@@ -134,6 +172,14 @@ export default function ChordProEditor() {
         </button>
         <button onClick={() => quickInsert('{songPartName: Solo}\nSOLO:')}>Solo</button>
         <button onClick={() => quickInsert('{songPartName: End}\nEND:')}>End</button>
+        <button onClick={handleImageInsert}>Insert Image</button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          accept=".png,.pdf"
+          onChange={handleFileChange}
+        />
       </div>
 
       <div className="actions">
