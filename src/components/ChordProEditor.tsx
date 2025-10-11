@@ -7,7 +7,7 @@ const escapeFilenameForBash = (filename: string): string => {
 
 export default function ChordProEditor() {
   const [title, setTitle] = useState<string>('');
-  const [artist, setArtist] = useState<string>('');
+  const [subtitle, setSubTitle] = useState<string>('');
   const [key, setKey] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [search, setSearch] = useState<string>('');
@@ -139,7 +139,7 @@ export default function ChordProEditor() {
       const numberedTitleCase = newCount > 1 ? `${titleCaseName} ${newCount}` : titleCaseName;
       const numberedUpperCase = newCount > 1 ? `${upperCaseName} ${newCount}` : upperCaseName;
 
-      return `{songPartName: ${numberedTitleCase}}\n${numberedUpperCase}:\n`;
+      return `{songPartName: ${numberedTitleCase}}\n{cb:${numberedUpperCase}:}\n`;
     });
 
     setContent(newContent);
@@ -152,8 +152,14 @@ export default function ChordProEditor() {
       <div className="top-controls">
         <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
         <button onClick={() => quickInsert(`{title: ${title}}`)}>Insert {`{title}`} tag</button>
-        <input placeholder="Artist" value={artist} onChange={(e) => setArtist(e.target.value)} />
-        <button onClick={() => quickInsert(`{artist: ${artist}}`)}>Insert {`{artist}`} tag</button>
+        <input
+          placeholder="Artist"
+          value={subtitle}
+          onChange={(e) => setSubTitle(e.target.value)}
+        />
+        <button onClick={() => quickInsert(`{subtitle: ${subtitle}}`)}>
+          Insert {`{aubtitle}`} tag
+        </button>
         <select value={key} onChange={(e) => setKey(e.target.value)}>
           <option value="">Select Key</option>
           {keyOptions.map((k) => (
@@ -186,12 +192,22 @@ export default function ChordProEditor() {
 
       <div className="quick-buttons">
         <button onClick={() => quickInsert('{comment: }')}>{'{comment}'}</button>
-        <button onClick={() => quickInsert('{songPartName: Intro}\nINTRO:')}>Intro</button>
-        <button onClick={() => quickInsert('{songPartName: Verse 1}\nVERSE 1:')}>Verse 1</button>
-        <button onClick={() => quickInsert('{songPartName: Verse 2}\nVERSE 2:')}>Verse 2</button>
-        <button onClick={() => quickInsert('{songPartName: Chorus}\nCHORUS:')}>Chorus</button>
-        <button onClick={() => quickInsert('{songPartName: Bridge}\nBRIDGE:')}>Bridge</button>
-        <button onClick={() => quickInsert('{songPartName: Interlude}\nINTERLUDE:')}>
+        <button onClick={() => quickInsert('{songPartName: Intro}\n{cb: INTRO:}')}>Intro</button>
+        <button onClick={() => quickInsert('{songPartName: Verse 1}\n{cb: VERSE 1:')}>
+          Verse 1
+        </button>
+        <button onClick={() => quickInsert('{songPartName: Chorus}\n{cb: CHORUS:')}>Chorus</button>
+        <button onClick={() => quickInsert('{songPartName: Verse 2}\n{cb: VERSE 2:}')}>
+          Verse 2
+        </button>
+        <button onClick={() => quickInsert('{songPartName: Verse 3}\n{cb: VERSE 3:}')}>
+          Verse 3
+        </button>
+        <button onClick={() => quickInsert('{songPartName: Verse 4}\n{cb: VERSE 4:')}>
+          Verse 4
+        </button>
+        <button onClick={() => quickInsert('{songPartName: Bridge}\n{cb: BRIDGE:}')}>Bridge</button>
+        <button onClick={() => quickInsert('{songPartName: Interlude}\n{cb: INTERLUDE:}')}>
           Interlude
         </button>
         <button onClick={() => quickInsert('{songPartName: Solo}\nSOLO:')}>Solo</button>
