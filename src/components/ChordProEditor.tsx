@@ -6,7 +6,7 @@ const escapeFilenameForBash = (filename: string): string => {
 };
 
 const chordRegex =
-  /(^NC|nc|N.C.|n.c.|[A-G](?:#|b)?(?:m|maj|min|sus|aug|dim|add|m7b5|7)?(?:[0-9]|1[0-3])?(?:\/[A-G](?:#|b)?)?)/;
+  /^(?:NC|nc|N\.C\.|n\.c\.|[A-G](?:#|b)?(?:m|maj|min|sus|aug|dim|add|m7b5|7)?(?:[0-9]|1[0-3])?(?:\/[A-G](?:#|b)?)?)$/;
 
 export default function ChordProEditor() {
   const [title, setTitle] = useState<string>('');
@@ -80,8 +80,8 @@ export default function ChordProEditor() {
 
   const handleImageInsert = () => {
     if (!imagePath.trim()) return;
-    const escapedPath = escapeFilenameForBash(imagePath.replace(/^['"]|['"]$/g, '').trim());
-    insertTextAtCursor(`{image: ${escapedPath}}\n`);
+    const noQuotesPath = imagePath.replace(/^['"]|['"]$/g, '').trim();
+    insertTextAtCursor(`{image: ${noQuotesPath}}\n`);
     setImagePath('');
   };
 
@@ -123,6 +123,7 @@ export default function ChordProEditor() {
   ];
 
   const convertSquareBrackets = () => {
+    sectionCountsRef.current = {};
     const newContent = content.replace(/\[([^\]]+)\]/g, (match, p1) => {
       const trimmed = p1.trim();
       if (chordRegex.test(trimmed)) return match;
