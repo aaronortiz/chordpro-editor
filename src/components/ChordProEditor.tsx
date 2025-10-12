@@ -5,17 +5,18 @@ const escapeFilenameForBash = (filename: string): string => {
   return filename.replace(/(["\s'$`\\])/g, '\\$1');
 };
 
+const chordRegex =
+  /(^NC|nc|N.C.|n.c.|[A-G](?:#|b)?(?:m|maj|min|sus|aug|dim|add|m7b5|7)?(?:[0-9]|1[0-3])?(?:\/[A-G](?:#|b)?)?)/;
+
 export default function ChordProEditor() {
   const [title, setTitle] = useState<string>('');
-  const [artist, setArtist] = useState<string>('');
+  const [subtitle, setSubTitle] = useState<string>('');
   const [key, setKey] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [search, setSearch] = useState<string>('');
   const [replace, setReplace] = useState<string>('');
-  const [imagePath, setImagePath] = useState<string>(''); // NEW: image path input
+  const [imagePath, setImagePath] = useState<string>('');
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
   const sectionCountsRef = useRef<Record<string, number>>({});
 
   const transformSelection = (transformFn: (s: string) => string) => {
@@ -81,7 +82,7 @@ export default function ChordProEditor() {
     if (!imagePath.trim()) return;
     const escapedPath = escapeFilenameForBash(imagePath.replace(/^['"]|['"]$/g, '').trim());
     insertTextAtCursor(`{image: ${escapedPath}}\n`);
-    setImagePath(''); // optional: clear input after insert
+    setImagePath('');
   };
 
   const keyOptions = [
@@ -121,9 +122,6 @@ export default function ChordProEditor() {
     'Abm'
   ];
 
-  const chordRegex =
-    /^[A-G](#|b)?(m|5|7|maj7|sus2|sus4|dim|m7b5)?(\/[A-G](#|b)?(m|5|7|maj7|sus2|sus4|dim|m7b5)?)?$/;
-
   const convertSquareBrackets = () => {
     const newContent = content.replace(/\[([^\]]+)\]/g, (match, p1) => {
       const trimmed = p1.trim();
@@ -139,10 +137,145 @@ export default function ChordProEditor() {
       const numberedTitleCase = newCount > 1 ? `${titleCaseName} ${newCount}` : titleCaseName;
       const numberedUpperCase = newCount > 1 ? `${upperCaseName} ${newCount}` : upperCaseName;
 
-      return `{songPartName: ${numberedTitleCase}}\n${numberedUpperCase}:\n`;
+      return `{songPartName: ${numberedTitleCase}}\n{cb:${numberedUpperCase}:}\n`;
     });
 
     setContent(newContent);
+  };
+
+  /** --- NEW FORMAT CONVERTER FUNCTIONS --- **/
+
+  const convertOverLyricsToBracketed = (lines: string[]): string[] => {
+    const result: string[] = [];
+
+    // Global regex to scan positions across a chord line
+    const CHORD_SCAN =
+      /([A-G](?:#|b)?(?:m|maj|min|sus|aug|dim|add|m7b5|7)?(?:[0-9]|1[0-3])?(?:\/[A-G](?:#|b)?)?)/g;
+
+    const isSectionHeader = (s: string) =>
+      /^\s*(verse|chorus|bridge|intro|outro|interlude|solo|end)\b/i.test(s);
+
+    const isChordOnlyLine = (s: string) => {
+      const tokens = s.trim().split(/\s+/);
+      if (!tokens.length) return false;
+      return tokens.every((t) => chordRegex.test(t));
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const chordLine = lines[i];
+
+      // Only operate on true chord-only lines
+      if (!isChordOnlyLine(chordLine)) {
+        result.push(chordLine);
+        continue;
+      }
+
+      const lyricLine = lines[i + 1] ?? '';
+
+      // If the next line is missing or a section header, leave the chord line untouched
+      if (isSectionHeader(lyricLine)) {
+        result.push(chordLine);
+        continue;
+      }
+
+      // Scan chord positions (column indexes)
+      const chordPositions: { pos: number; chord: string }[] = [];
+      let m: RegExpExecArray | null;
+      while ((m = CHORD_SCAN.exec(chordLine)) !== null) {
+        chordPositions.push({ pos: m.index, chord: m[1] });
+      }
+
+      // Insert chords into the lyric line at exact columns
+      let out = lyricLine;
+      let offset = 0; // account for earlier insertions growing the string
+      for (const { pos, chord } of chordPositions) {
+        // Pad lyric if chord sits beyond current length
+        if (pos > out.length - offset) {
+          out = out.padEnd(pos + offset, ' ');
+        }
+        const insertAt = pos + offset;
+        out = out.slice(0, insertAt) + `[${chord}]` + out.slice(insertAt);
+        offset += chord.length + 2; // "[" + chord + "]"
+      }
+
+      // Push only the converted lyric line; skip original chord line
+      result.push(out);
+      i++; // consume the lyric line
+    }
+
+    return result;
+  };
+
+  const convertBracketedToOverLyrics = (lines: string[]): string[] => {
+    const result: string[] = [];
+
+    for (const line of lines) {
+      // Skip non-lyrics like "Verse:", "Chorus:", etc.
+      if (/^\s*(verse|chorus|bridge|intro|outro|interlude|solo|end)/i.test(line)) {
+        result.push(line);
+        continue;
+      }
+
+      const chordPositions: { pos: number; chord: string }[] = [];
+      let plainLyric = '';
+
+      // Parse once: build plainLyric and record chord positions at the *current* plainLyric length
+      const bracketRe = /\[([^\]]+)\]/g;
+      let lastIdx = 0;
+      let m: RegExpExecArray | null;
+
+      while ((m = bracketRe.exec(line)) !== null) {
+        const chord = m[1];
+        // Add text before this chord to the lyric
+        if (m.index > lastIdx) {
+          plainLyric += line.slice(lastIdx, m.index);
+        }
+        // Record chord position at current plainLyric length
+        chordPositions.push({ pos: plainLyric.length, chord });
+        // Advance past the entire [CHORD]
+        lastIdx = m.index + m[0].length;
+      }
+      // Append any remaining text after the last chord
+      if (lastIdx < line.length) {
+        plainLyric += line.slice(lastIdx);
+      }
+
+      if (chordPositions.length) {
+        // Chord line length should be long enough to fit chords that land at/after lyric end
+        const maxLen = Math.max(
+          plainLyric.length,
+          ...chordPositions.map(({ pos, chord }) => pos + chord.length)
+        );
+        const chordLineArray = Array(maxLen).fill(' ');
+
+        chordPositions.forEach(({ pos, chord }) => {
+          for (let i = 0; i < chord.length && pos + i < chordLineArray.length; i++) {
+            chordLineArray[pos + i] = chord[i];
+          }
+        });
+
+        const chordLine = chordLineArray.join('').replace(/\s+$/, ''); // right trim
+        result.push(chordLine);
+        result.push(plainLyric);
+      } else {
+        result.push(line);
+      }
+    }
+
+    return result;
+  };
+
+  const convertChordProFormat = () => {
+    const lines = content.split('\n');
+    const isBracketed = lines.some((line) =>
+      line.match(/\[([A-G][#b]?m?(maj7|sus|dim|add)?\d*)\]/)
+    );
+
+    const result = isBracketed
+      ? convertBracketedToOverLyrics(lines)
+      : convertOverLyricsToBracketed(lines);
+
+    setContent(result.join('\n'));
   };
 
   return (
@@ -152,8 +285,14 @@ export default function ChordProEditor() {
       <div className="top-controls">
         <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
         <button onClick={() => quickInsert(`{title: ${title}}`)}>Insert {`{title}`} tag</button>
-        <input placeholder="Artist" value={artist} onChange={(e) => setArtist(e.target.value)} />
-        <button onClick={() => quickInsert(`{artist: ${artist}}`)}>Insert {`{artist}`} tag</button>
+        <input
+          placeholder="Artist"
+          value={subtitle}
+          onChange={(e) => setSubTitle(e.target.value)}
+        />
+        <button onClick={() => quickInsert(`{subtitle: ${subtitle}}`)}>
+          Insert {`{subtitle}`} tag
+        </button>
         <select value={key} onChange={(e) => setKey(e.target.value)}>
           <option value="">Select Key</option>
           {keyOptions.map((k) => (
@@ -177,28 +316,49 @@ export default function ChordProEditor() {
         onChange={(e) => {
           const newContent = e.target.value;
           setContent(newContent);
-          if (newContent.trim() === '') {
-            sectionCountsRef.current = {};
-          }
+          if (newContent.trim() === '') sectionCountsRef.current = {};
         }}
         placeholder="Enter ChordPro content here..."
       />
 
+      <div className="conversions">
+        <button onClick={convertSquareBrackets}>Convert [Sections] to ChordPro tags</button>
+        <button onClick={convertChordProFormat}>Convert Format (Chords↔Lyrics)</button>
+      </div>
       <div className="quick-buttons">
         <button onClick={() => quickInsert('{comment: }')}>{'{comment}'}</button>
-        <button onClick={() => quickInsert('{songPartName: Intro}\nINTRO:')}>Intro</button>
-        <button onClick={() => quickInsert('{songPartName: Verse 1}\nVERSE 1:')}>Verse 1</button>
-        <button onClick={() => quickInsert('{songPartName: Verse 2}\nVERSE 2:')}>Verse 2</button>
-        <button onClick={() => quickInsert('{songPartName: Chorus}\nCHORUS:')}>Chorus</button>
-        <button onClick={() => quickInsert('{songPartName: Bridge}\nBRIDGE:')}>Bridge</button>
-        <button onClick={() => quickInsert('{songPartName: Interlude}\nINTERLUDE:')}>
+        <button onClick={() => quickInsert('{songPartName: Intro}\n{cb: INTRO:}')}>Intro</button>
+        <button onClick={() => quickInsert('{songPartName: Verse 1}\n{cb: VERSE 1:}')}>
+          Verse 1
+        </button>
+        <button onClick={() => quickInsert('{songPartName: Chorus}\n{cb: CHORUS:}')}>Chorus</button>
+        <button onClick={() => quickInsert('{songPartName: Verse 2}\n{cb: VERSE 2:}')}>
+          Verse 2
+        </button>
+        <button onClick={() => quickInsert('{songPartName: Chorus 2}\n{cb: CHORUS 2:}')}>
+          Chorus 2
+        </button>
+        <button onClick={() => quickInsert('{songPartName: Verse 3}\n{cb: VERSE 3:}')}>
+          Verse 3
+        </button>
+        <button onClick={() => quickInsert('{songPartName: Chorus 3}\n{cb: CHORUS 3:}')}>
+          Chorus 3
+        </button>
+        <button onClick={() => quickInsert('{songPartName: Verse 4}\n{cb: VERSE 4:}')}>
+          Verse 4
+        </button>
+        <button onClick={() => quickInsert('{songPartName: Bridge}\n{cb: BRIDGE:}')}>Bridge</button>
+        <button onClick={() => quickInsert('{songPartName: Interlude}\n{cb: INTERLUDE:}')}>
           Interlude
         </button>
-        <button onClick={() => quickInsert('{songPartName: Solo}\nSOLO:')}>Solo</button>
-        <button onClick={() => quickInsert('{songPartName: End}\nEND:')}>End</button>
+        <button onClick={() => quickInsert('{songPartName: Solo}\n{cb: SOLO:}')}>Solo</button>
+        <button onClick={() => quickInsert('{songPartName: Chorus 4}\n{cb: CHORUS 4:}')}>
+          Chorus 4
+        </button>
+
+        <button onClick={() => quickInsert('{songPartName: End}\n{cb: END:}')}>End</button>
       </div>
 
-      {/* NEW: image path input */}
       <div className="image-insert">
         <input
           type="text"
@@ -217,7 +377,6 @@ export default function ChordProEditor() {
           Transform selection to Title Case
         </button>
         <button onClick={copyToClipboard}>Copy all to Clipboard</button>
-        <button onClick={convertSquareBrackets}>Convert [Sections] to ChordPro tags</button>
       </div>
     </div>
   );
