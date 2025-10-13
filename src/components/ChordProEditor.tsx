@@ -6,7 +6,7 @@ const escapeFilenameForBash = (filename: string): string => {
 };
 
 const chordRegex =
-  /^(?:NC|nc|N\.C\.|n\.c\.|[A-G](?:#|b)?(?:m|maj|min|sus|aug|dim|add|m7b5|7)?(?:[0-9]|1[0-3])?(?:\/[A-G](?:#|b)?)?)$/;
+  /^(?:NC|nc|N\.C\.|n\.c\.|[A-G](?:#|b)?(?:m|maj|min|sus|aug|dim|add|m7b)?(?:[0-9]|1[0-3])?(?:\/[A-G](?:#|b)?)?)$/;
 
 export default function ChordProEditor() {
   const [title, setTitle] = useState<string>('');
@@ -151,7 +151,7 @@ export default function ChordProEditor() {
 
     // Global regex to scan positions across a chord line
     const CHORD_SCAN =
-      /([A-G](?:#|b)?(?:m|maj|min|sus|aug|dim|add|m7b5|7)?(?:[0-9]|1[0-3])?(?:\/[A-G](?:#|b)?)?)/g;
+      /((nc|NC|n\.c\.|N\.C\.|[A-G])(?:#|b)?(?:m|maj|min|sus|aug|dim|add|m7b)?(?:[0-9]|1[0-3])?(?:\/[A-G](?:#|b)?)?)/g;
 
     const isSectionHeader = (s: string) =>
       /^\s*(verse|chorus|bridge|intro|outro|interlude|solo|end)\b/i.test(s);
