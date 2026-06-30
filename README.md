@@ -90,6 +90,19 @@ Copy the editor contents to the clipboard for easy pasting into GigPerformer's l
 
 This is actually quite nice. Sometimes when you find chords online, they will have their sections with square brackets `[Like this]`. This button searches the text for any instance of text that is not a chord, and replaces it with a `{songPartName: }` tag instead.
 
+### ✨ Convert from Ultimate Guitar (AI)
+
+Paste a raw chord sheet (e.g. straight from an Ultimate Guitar page) into the editor and click **✨ Convert from Ultimate Guitar (AI)**. It calls Claude to clean up the mess and emit a Gig Performer `.pro` file in the exact format used here:
+
+- `{songPartName: ...}` + `{cb: ...:}` section tags, numbered by content (verses from 1; repeated choruses leave the first un-numbered)
+- inline `[chord]` placement, chord-only intro/turnaround lines
+- strips `[tab]`/`[ch]` tags, fretboard diagrams, tabber banners and chatter
+- keeps capo notes as a `{c: Capo N}` comment
+
+After conversion the result drops back into the editor, so you can still use the buttons above for any final touch-ups.
+
+**Setup (one time):** copy `.env.example` to `.env` and set your `ANTHROPIC_API_KEY`, then `npm run dev`. The key is read only by the local dev server (`vite.config.js` → `server/ug-convert-plugin.js`) and is never bundled into the browser. The conversion prompt lives in `prompts/ultimate-guitar-to-gigperformer.md` — edit it to tweak the rules. Set `UG_CONVERT_MODEL` in `.env` to override the model (defaults to `claude-opus-4-8`).
+
 ---
 
 ## Acknowledgments
