@@ -34,6 +34,18 @@ Solo, Instrumental, Breakdown, Tag, Link, Outro, End. Map obvious synonyms
 ## Chords in the body (inline bracket layout)
 - Convert "chords over lyrics" to inline [chord] tags placed at the EXACT column the
   chord sat above, including mid-word (a chord over the "f" of "floor" -> "f[E]loor").
+- CRITICAL: after moving the chords down into the lyric line, DELETE the original
+  chord-only line. The merged lyric line REPLACES it. Never output both the bare
+  chord row AND the bracketed lyric line — the source chord row must not survive.
+  Example:
+      Input (two source lines):
+                 C            F
+          Saw your picture in a cafe
+      Correct output (ONE line; the chord row is gone):
+          Saw your [C]picture in a [F]cafe
+      WRONG (do not do this — chord row left intact above the lyric):
+                 C            F
+          Saw your [C]picture in a [F]cafe
 - A chord at or past the end of its lyric is appended to the line end (word[D]).
 - Preserve the lyric line's leading spaces.
 - Chord-only lines (no lyrics beneath): bracket each chord and space them out, e.g.
