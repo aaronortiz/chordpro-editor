@@ -16,6 +16,8 @@ export default function ChordProEditor() {
   const [search, setSearch] = useState<string>('');
   const [replace, setReplace] = useState<string>('');
   const [imagePath, setImagePath] = useState<string>('');
+  const [converting, setConverting] = useState<boolean>(false);
+  const [convertError, setConvertError] = useState<string>('');
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
   const sectionCountsRef = useRef<Record<string, number>>({});
 
@@ -279,6 +281,29 @@ export default function ChordProEditor() {
     setContent(result.join('\n'));
   };
 
+  /** Send the raw (Ultimate Guitar) text in the editor to Claude and replace it
+   * with a cleaned Gig Performer .pro version. The API key lives server-side. */
+  const convertFromUltimateGuitar = async () => {
+    if (!content.trim() || converting) return;
+    setConverting(true);
+    setConvertError('');
+    try {
+      const resp = await fetch('/api/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: content })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || `Conversion failed (${resp.status})`);
+      setContent(data.pro);
+      sectionCountsRef.current = {};
+    } catch (err) {
+      setConvertError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setConverting(false);
+    }
+  };
+
   return (
     <div className="container">
       <h1>Chord Pro to GigPerformer Text Editor</h1>
@@ -323,9 +348,18 @@ export default function ChordProEditor() {
       />
 
       <div className="conversions">
+        <button
+          onClick={convertFromUltimateGuitar}
+          disabled={converting}
+          className="ai-convert"
+          title="Paste a raw Ultimate Guitar chord sheet, then convert it to your Gig Performer format"
+        >
+          {converting ? 'Converting…' : '✨ Convert from Ultimate Guitar (AI)'}
+        </button>
         <button onClick={convertSquareBrackets}>Convert [Sections] to ChordPro tags</button>
         <button onClick={convertChordProFormat}>Convert Format (Chords↔Lyrics)</button>
       </div>
+      {convertError && <div className="convert-error">⚠️ {convertError}</div>}
       <div className="quick-buttons">
         <button onClick={() => quickInsert('{comment: }')}>{'{comment}'}</button>
         <button onClick={() => quickInsert('{songPartName: Intro}\n{cb: INTRO:}')}>Intro</button>
