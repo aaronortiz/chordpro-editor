@@ -9,7 +9,7 @@ const PROMPT_PATH = 'prompts/ultimate-guitar-to-gigperformer.md';
  * guaranteed regardless of small model variations.
  */
 function normalize(text) {
-  return text
+  const cleaned = text
     // Guarantee exactly one space after "cb:" — e.g. {cb:VERSE 1:} -> {cb: VERSE 1:}
     .replace(/\{cb:\s*/g, '{cb: ')
     // Strip trailing whitespace on every line (never affects chord column alignment,
@@ -18,6 +18,16 @@ function normalize(text) {
     // Collapse 3+ consecutive blank lines down to 2
     .replace(/\n{4,}/g, '\n\n\n')
     .trimEnd() + '\n';
+
+  // FINAL step, run last on purpose: once the chords are already inline [brackets],
+  // the source's column positions no longer matter, so it's safe to left-align.
+  // Strip leftover leading indentation from any line that carries an inline chord.
+  // Lines with NO bracket (e.g. chords-over-lyrics "(break)" lines) keep their leading
+  // spaces so they stay aligned over their lyric.
+  return cleaned
+    .split('\n')
+    .map((line) => (/\[[^\]]+\]/.test(line) ? line.replace(/^[ \t]+/, '') : line))
+    .join('\n');
 }
 
 function readBody(req) {

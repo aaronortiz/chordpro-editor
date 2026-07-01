@@ -18,8 +18,10 @@ export default function ChordProEditor() {
   const [imagePath, setImagePath] = useState<string>('');
   const [converting, setConverting] = useState<boolean>(false);
   const [convertError, setConvertError] = useState<string>('');
+  const [toast, setToast] = useState<string>('');
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
   const sectionCountsRef = useRef<Record<string, number>>({});
+  const toastTimerRef = useRef<number | null>(null);
 
   const transformSelection = (transformFn: (s: string) => string) => {
     const textarea = editorRef.current;
@@ -61,8 +63,19 @@ export default function ChordProEditor() {
     }, 0);
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(content);
+  const showToast = (message: string) => {
+    setToast(message);
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = window.setTimeout(() => setToast(''), 2000);
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      showToast('✓ Copied to clipboard');
+    } catch {
+      showToast('⚠️ Copy failed — use ⌘/Ctrl+C instead');
+    }
   };
 
   const insertTextAtCursor = (text: string) => {
@@ -413,6 +426,12 @@ export default function ChordProEditor() {
         </button>
         <button onClick={copyToClipboard}>Copy all to Clipboard</button>
       </div>
+
+      {toast && (
+        <div className="toast" role="status" aria-live="polite">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
